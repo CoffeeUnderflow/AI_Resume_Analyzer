@@ -1,8 +1,7 @@
+streamlit
 Flask
-pymupdf
-python-docx
-scikit-learn
-spacy
+PyPDF2
 pandas
-pymongo
-reportlab
+numpy
+scikit-learn
+joblib
