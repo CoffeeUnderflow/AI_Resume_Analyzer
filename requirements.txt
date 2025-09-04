@@ -1,7 +1,9 @@
-streamlit
 Flask
+Werkzeug
 PyPDF2
-pandas
-numpy
+fpdf
+pdf2image
+pytesseract
+Pillow
 scikit-learn
-joblib
+numpy
