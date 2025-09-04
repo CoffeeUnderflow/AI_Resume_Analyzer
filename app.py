@@ -180,4 +180,4 @@ def download_pdf(filename):
     return send_file(file_path, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    #app.run(debug=True)
