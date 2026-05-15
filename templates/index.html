@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CoffeeUnderflow | AI Resume Analyzer</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f4f4f4; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        textarea, input { width: 100%; margin-bottom: 20px; }
+        button { background: #333; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>AI Resume Analyzer</h2>
+        <p>Upload a PDF resume and paste a job description to see the match score.</p>
+        <form action="/analyze" method="post" enctype="multipart/form-data">
+            <label>Job Description:</label>
+            <textarea name="job_description" rows="5" required></textarea>
+            
+            <label>Upload Resume (PDF):</label>
+            <input type="file" name="resume" accept=".pdf" required>
+            
+            <button type="submit">Analyze Match</button>
+        </form>
+    </div>
+</body>
+</html>
