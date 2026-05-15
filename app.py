@@ -12,21 +12,46 @@ def home():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    try:
-        job_description = request.form.get('job_description')
-        file = request.files.get('resume')
-        
-        reader = PdfReader(file)
-        resume_text = ""
-        for page in reader.pages:
-            resume_text += page.extract_text()
+    
+try:
+            job_description = request.form.get('job_description', '')
+            file = request.files.get('resume')
 
-        documents = [resume_text, job_description]
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(documents)
-        
-        score = cosine_similarity(tfidf_matrix)[0][1] * 100
-        return jsonify({"match_score": f"{round(score, 2)}%"})
+            if not file:
+                return jsonify({"error": "No file uploaded"}), 400
+
+            reader = PdfReader(file)
+            resume_text = ""
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    resume_text += text + " "
+
+            # 1. Calculate TF-IDF Cosine Similarity Score
+            documents = [resume_text, job_description]
+            vectorizer = TfidfVectorizer()
+            tfidf_matrix = vectorizer.fit_transform(documents)
+            score = cosine_similarity(tfidf_matrix)[0][1] * 100
+
+            # 2. Extract Missing Keywords Logic
+            # Use the vectorizer's internal analyzer to tokenize the job description text cleanly
+            analyze_text = vectorizer.build_analyzer()
+            job_words = set(analyze_text(job_description))
+            resume_words = set(analyze_text(resume_text))
+
+            # Find terms that exist in the job description but NOT in the resume
+            # Filter out short noise/numbers by checking len(word) > 2
+            missing = [word for word in job_words if word not in resume_words and len(word) > 2]
+
+            # Format words to look clean on the frontend layout (e.g., "sql", "java")
+            # We take the top 6 missing items so the layout box stays clean
+            missing_skills = [word.upper() for word in missing[:6]]
+
+            # 3. Return both keys to the frontend UI pipeline
+            return jsonify({
+                "match_score": f"{round(score, 2)}%",
+                "missing_skills": missing_skills})
+    
     except Exception as e:
         return jsonify({"error": str(e)})
 
