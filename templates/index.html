@@ -1,28 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>CoffeeUnderflow | AI Resume Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoffeeUnderflow | AI Resume Machine</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #f4f4f4; }
-        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        textarea, input { width: 100%; margin-bottom: 20px; }
-        button { background: #333; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 4px; }
+        :root { --primary-red: #D32F2F; --deep-red: #B71C1C; --bg: #FFFFFF; --accent-grey: #F5F5F5; }
+        body { font-family: 'Courier New', Courier, monospace; background: var(--bg); color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 40px auto; border: 2px solid #eee; padding: 30px; border-radius: 4px; }
+        h1 { color: var(--primary-red); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Drop Zone Styling */
+        #drop-zone {
+            border: 2px dashed var(--primary-red);
+            background: var(--accent-grey);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        #drop-zone.hover { background: #ffebee; border-style: solid; }
+        
+        textarea { width: 100%; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; box-sizing: border-box; }
+        
+        button { 
+            background: var(--primary-red); color: white; border: none; 
+            padding: 15px 30px; width: 100%; cursor: pointer; 
+            text-transform: uppercase; font-weight: bold;
+        }
+        button:hover { background: var(--deep-red); }
+
+        /* Terminal Result Styling */
+        #terminal {
+            background: #1a1a1a; color: #00ff00; padding: 15px;
+            border-radius: 4px; margin-top: 20px; display: none;
+            font-size: 0.9rem; line-height: 1.4;
+        }
+        .red-text { color: var(--primary-red); }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>AI Resume Analyzer</h2>
-        <p>Upload a PDF resume and paste a job description to see the match score.</p>
-        <form action="/analyze" method="post" enctype="multipart/form-data">
-            <label>Job Description:</label>
-            <textarea name="job_description" rows="5" required></textarea>
-            
-            <label>Upload Resume (PDF):</label>
-            <input type="file" name="resume" accept=".pdf" required>
-            
-            <button type="submit">Analyze Match</button>
-        </form>
-    </div>
+
+<div class="container">
+    <h1>System // Resume_Analyzer_v1.0</h1>
+    <p>FEED THE MACHINE: INPUT DATA FOR ANALYSIS</p>
+
+    <form id="upload-form">
+        <label>TARGET JOB DESCRIPTION:</label>
+        <textarea id="job_desc" rows="4" placeholder="Paste requirements here..."></textarea>
+
+        <div id="drop-zone">
+            DRAG & DROP RESUME PDF HERE <br>
+            <span style="font-size: 0.8rem;">(OR CLICK TO SELECT)</span>
+            <input type="file" id="resume-file" hidden accept=".pdf">
+        </div>
+
+        <button type="button" onclick="runAnalysis()">Initialize Analysis</button>
+    </form>
+
+    <div id="terminal"></div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('resume-file');
+
+    dropZone.onclick = () => fileInput.click();
+    
+    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('hover'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('hover');
+    dropZone.ondrop = (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('hover');
+        fileInput.files = e.dataTransfer.files;
+        dropZone.innerHTML = `FILE LOADED: ${e.dataTransfer.files[0].name}`;
+    };
+
+    async function runAnalysis() {
+        const term = document.getElementById('terminal');
+        term.style.display = 'block';
+        term.innerHTML = "> Initializing CoffeeUnderflow AI...<br>> Parsing PDF Structure...<br>> Analyzing keyword density...";
+
+        const formData = new FormData();
+        formData.append('job_description', document.getElementById('job_desc').value);
+        formData.append('resume', fileInput.files[0]);
+
+        const response = await fetch('/analyze', { method: 'POST', body: formData });
+        const data = await response.json();
+
+        setTimeout(() => {
+            term.innerHTML += `<br>> Analysis Complete.<br><br><span class="red-text">[MATCH_SCORE]: ${data.match_score}</span>`;
+        }, 1000);
+    }
+</script>
+
 </body>
 </html>
