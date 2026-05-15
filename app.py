@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "AI Resume Analyzer is Live - Powered by CoffeeUnderflow"
+    return render_template('index.html')
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
