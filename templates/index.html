@@ -152,11 +152,8 @@
         <hr class="divider" id="output-divider">
         <div class="suggestions-section" id="output-suggestions">
             <div class="suggestions-title">Skills to Improve:</div>
-            <ul class="suggestions-list">
-                <li>Spring Boot</li>
-                <li>SQL</li>
-                <li>REST APIs</li>
-            </ul>
+           <ul class="suggestions-list" id="skills-list"></ul>
+            
         </div>
     </div>
 </div>
@@ -229,12 +226,21 @@
             suggestions.style.display = 'block';
             headerText.innerHTML = `> Match Score: ${data.match_score} — ${statusText}`;
             
-        } catch (err) {
-            divider.style.display = 'none';
-            suggestions.style.display = 'none';
-            headerText.innerHTML = `<span class="error-text">ERROR: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
-        }
-    }
+            // DYNAMIC UPDATE: Target skills-list, wipe old entries, and append fresh items
+            const listContainer = document.getElementById('skills-list');
+            listContainer.innerHTML = ""; // Clear previous execution data
+            
+            if (data.missing_skills && data.missing_skills.length > 0) {
+                data.missing_skills.forEach(skill => {
+                    const li = document.createElement('li');
+                    li.textContent = skill;
+                    listContainer.appendChild(li);
+                });
+            } else if (numericScore > 80) {
+                listContainer.innerHTML = "<li>TECHNICAL STACK HIGHLY ALIGNED. NO MAJOR SKILLS MISSING.</li>";
+            } else {
+                listContainer.innerHTML = "<li>ADD MORE DETAIL TO THE JOB DESCRIPTION FOR BETTER INSIGHTS.</li>";
+            }
 </script>
 </body>
 </html>
