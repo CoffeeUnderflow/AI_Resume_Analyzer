@@ -1,9 +1,4 @@
-Flask
-Werkzeug
+flask
 PyPDF2
-fpdf
-pdf2image
-pytesseract
-Pillow
 scikit-learn
-numpy
+gunicorn
