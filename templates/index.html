@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoffeeUnderflow | Analyzer v1.2</title>
+    <title>CoffeeUnderflow | Analyzer v1.3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght=300;400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -31,21 +31,32 @@
             box-sizing: border-box;
         }
 
-        /* Top Box: File Upload Blueprint */
+        /* Top Box: Turned into a relative container for our overlay trick */
         #drop-zone {
+            position: relative; 
             background: var(--pure-white);
             border: 1px solid var(--black);
             color: var(--black);
             font-size: 24px;
             padding: 40px 20px;
             text-align: center;
-            cursor: pointer;
             margin-bottom: 20px;
             text-transform: uppercase;
         }
         #drop-zone.hover {
             background: #fafafa;
             border-width: 2px;
+        }
+
+        /* NEW PRODUCTION FIX: Invisible native input catches direct clicks through the iframe */
+        #resume-file {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
 
         /* Middle Box: Job Requirements Blueprint */
@@ -81,7 +92,7 @@
             background: #B71C1C;
         }
 
-        /* Output Box Blueprint (Hidden initially) */
+        /* Output Box Blueprint */
         #output-box {
             display: none;
             background: var(--pure-white);
@@ -138,9 +149,9 @@
 <body>
 
 <div class="container">
-    <div id="drop-zone">
-        Upload your PDF file
-        <input type="file" id="resume-file" hidden accept=".pdf">
+    <div id="drop-zone" id="dz-zone">
+        UPLOAD YOUR PDF FILE
+        <input type="file" id="resume-file" accept=".pdf">
     </div>
 
     <textarea id="job_desc" rows="4" placeholder="PASTE JOB REQUIREMENTS HERE..."></textarea>
@@ -152,8 +163,7 @@
         <hr class="divider" id="output-divider">
         <div class="suggestions-section" id="output-suggestions">
             <div class="suggestions-title">Skills to Improve:</div>
-           <ul class="suggestions-list" id="skills-list"></ul>
-            
+            <ul class="suggestions-list" id="skills-list"></ul>
         </div>
     </div>
 </div>
@@ -166,11 +176,11 @@
     const divider = document.getElementById('output-divider');
     const suggestions = document.getElementById('output-suggestions');
 
-    dz.onclick = () => fileInput.click();
+    // dz.onclick REMOVED: Native input overlay handles direct clicks securely now
     
     fileInput.onchange = () => {
         if (fileInput.files.length > 0) {
-            dz.innerHTML = `FILE LOADED: ${fileInput.files[0].name}`;
+            dz.childNodes[0].nodeValue = `FILE LOADED: ${fileInput.files[0].name}`;
         }
     };
     
@@ -180,11 +190,10 @@
         e.preventDefault();
         dz.classList.remove('hover');
         fileInput.files = e.dataTransfer.files;
-        dz.innerHTML = `FILE LOADED: ${e.dataTransfer.files[0].name}`;
+        dz.childNodes[0].nodeValue = `FILE LOADED: ${e.dataTransfer.files[0].name}`;
     };
 
     async function runAnalysis() {
-        // Safeguard for empty inputs
         if (fileInput.files.length === 0) {
             outputBox.style.display = 'block';
             divider.style.display = 'none';
@@ -193,7 +202,6 @@
             return;
         }
 
-// Setup loading layout state
         outputBox.style.display = 'block';
         divider.style.display = 'none';
         suggestions.style.display = 'none';
@@ -208,10 +216,8 @@
             if (!response.ok) throw new Error('Network issue');
             const data = await response.json();
             
-            // Convert score string to numeric value for tracking tiers
             const numericScore = parseFloat(data.match_score);
             
-            // Dynamic Status Mapping without brackets
             let statusText = "";
             if (numericScore <= 20) {
                 statusText = "STATUS: MISALIGNED";
@@ -221,14 +227,12 @@
                 statusText = "STATUS: OPTIMIZED";
             }
             
-            // Clear layout flags and display bracketless header text
             divider.style.display = 'block';
             suggestions.style.display = 'block';
             headerText.innerHTML = `> Match Score: ${data.match_score} — ${statusText}`;
             
-            // DYNAMIC UPDATE: Target skills-list, wipe old entries, and append fresh items
             const listContainer = document.getElementById('skills-list');
-            listContainer.innerHTML = ""; // Clear previous execution data
+            listContainer.innerHTML = ""; 
             
             if (data.missing_skills && data.missing_skills.length > 0) {
                 data.missing_skills.forEach(skill => {
@@ -241,6 +245,14 @@
             } else {
                 listContainer.innerHTML = "<li>ADD MORE DETAIL TO THE JOB DESCRIPTION FOR BETTER INSIGHTS.</li>";
             }
+
+        } catch (err) {
+            // FIXED: Appended missing catch handling block to prevent browser script execution crashes
+            divider.style.display = 'none';
+            suggestions.style.display = 'none';
+            headerText.innerHTML = `<span class="error-text">ERROR: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
+        }
+    }
 </script>
 </body>
 </html>
