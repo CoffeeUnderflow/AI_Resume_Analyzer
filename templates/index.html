@@ -192,11 +192,11 @@
             outputBox.style.display = 'block';
             divider.style.display = 'none';
             suggestions.style.display = 'none';
-            headerText.innerHTML = `<span class="error-text">[ERROR]: NO PDF FILE DETECTED.</span>`;
+            headerText.innerHTML = `<span class="error-text">ERROR: NO PDF FILE DETECTED.</span>`;
             return;
         }
 
-        // Setup loading layout state
+// Setup loading layout state
         outputBox.style.display = 'block';
         divider.style.display = 'none';
         suggestions.style.display = 'none';
@@ -211,15 +211,28 @@
             if (!response.ok) throw new Error('Network issue');
             const data = await response.json();
             
-            // Render the final blueprint layout accurately
+            // Convert score string to numeric value for tracking tiers
+            const numericScore = parseFloat(data.match_score);
+            
+            // Dynamic Status Mapping without brackets
+            let statusText = "";
+            if (numericScore <= 20) {
+                statusText = "STATUS: MISALIGNED";
+            } else if (numericScore > 20 && numericScore <= 50) {
+                statusText = "STATUS: CORE ALIGNED";
+            } else {
+                statusText = "STATUS: OPTIMIZED";
+            }
+            
+            // Clear layout flags and display bracketless header text
             divider.style.display = 'block';
             suggestions.style.display = 'block';
-            headerText.innerHTML = `> Match Score: ${data.match_score} — STATUS: MISALIGNED`;
+            headerText.innerHTML = `> Match Score: ${data.match_score} — ${statusText}`;
             
         } catch (err) {
             divider.style.display = 'none';
             suggestions.style.display = 'none';
-            headerText.innerHTML = `<span class="error-text">[ERROR]: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
+            headerText.innerHTML = `<span class="error-text">ERROR: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
         }
     }
 </script>
