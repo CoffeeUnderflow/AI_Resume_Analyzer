@@ -203,7 +203,7 @@
         formData.append('job_description', document.getElementById('job_desc').value);
         formData.append('resume', fileInput.files[0]);
 
-        try {
+try {
             const response = await fetch('/analyze', { method: 'POST', body: formData });
             if (!response.ok) throw new Error('Network issue');
             const data = await response.json();
@@ -225,8 +225,8 @@
             
             const listContainer = document.getElementById('skills-list');
             listContainer.innerHTML = ""; 
-            
-            if (data.missing_skills && data.missing_skills.length > 0) {
+    
+    if (data.missing_skills && data.missing_skills.length > 0) {
                 data.missing_skills.forEach(skill => {
                     const li = document.createElement('li');
                     li.textContent = skill;
@@ -244,6 +244,8 @@
             headerText.innerHTML = `<span class="error-text">ERROR: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
         }
     }
+            
+          
 </script>
 </body>
 </html>
