@@ -74,6 +74,58 @@
             term.innerHTML += `<br><br><span class="error-text">[ERROR]: SYSTEM OVERHEAT. THE MACHINE IS TAKING A COFFEE BREAK. PLEASE TRY AGAIN IN 30 SECONDS.</span>`;
         }
     }
+
+    const dz = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('resume-file');
+
+    // Clicking the box triggers the file input
+    dz.onclick = () => fileInput.click();
+    
+    // 1. FIX: Update text when a user selects a file via the file browser dialog
+    fileInput.onchange = () => {
+        if (fileInput.files.length > 0) {
+            dz.innerHTML = `FILE_LOADED: <span style="color: var(--primary-red); font-weight: bold;">${fileInput.files[0].name}</span>`;
+        }
+    };
+    
+    // Handle drag and drop states
+    dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('hover'); };
+    dz.ondragleave = () => dz.classList.remove('hover');
+    dz.ondrop = (e) => {
+        e.preventDefault();
+        dz.classList.remove('hover');
+        fileInput.files = e.dataTransfer.files;
+        // Update text when file is dropped
+        dz.innerHTML = `FILE_LOADED: <span style="color: var(--primary-red); font-weight: bold;">${e.dataTransfer.files[0].name}</span>`;
+    };
+
+    async function runAnalysis() {
+        const term = document.getElementById('terminal');
+        
+        // 2. FIX: Add a safeguard in case they hit the button without a file loaded
+        if (fileInput.files.length === 0) {
+            term.style.display = 'block';
+            term.innerHTML = `<span class="error-text">[ERROR]: NO DATA INPUT DETECTED. PLEASE LOAD A RESUME PDF.</span>`;
+            return;
+        }
+
+        term.style.display = 'block';
+        term.innerHTML = "> ACCESSING CORE...<br>> PARSING PDF...<br>> CALCULATING VECTOR DISTANCE...";
+
+        const formData = new FormData();
+        formData.append('job_description', document.getElementById('job_desc').value);
+        formData.append('resume', fileInput.files[0]);
+
+        try {
+            const response = await fetch('/analyze', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Network snag');
+            const data = await response.json();
+            
+            term.innerHTML += `<br>> ANALYSIS COMPLETE.<br><br><span style="color:white">MATCH_SCORE:</span> <span style="color:var(--primary-red)">${data.match_score}</span>`;
+        } catch (err) {
+            term.innerHTML += `<br><br><span class="error-text">[ERROR]: SYSTEM OVERHEAT. THE MACHINE IS TAKING A COFFEE BREAK. PLEASE TRY AGAIN IN 30 SECONDS.</span>`;
+        }
+    }
 </script>
-</body>
+    </body>
 </html>
