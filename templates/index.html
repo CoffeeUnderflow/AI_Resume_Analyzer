@@ -3,97 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoffeeUnderflow | AI Resume Machine</title>
+    <title>CoffeeUnderflow | AI Machine</title>
     <style>
-        :root { --primary-red: #D32F2F; --deep-red: #B71C1C; --bg: #FFFFFF; --accent-grey: #F5F5F5; }
-        body { font-family: 'Courier New', Courier, monospace; background: var(--bg); color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; border: 2px solid #eee; padding: 30px; border-radius: 4px; }
-        h1 { color: var(--primary-red); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        :root { --primary-red: #D32F2F; --bg: #FFFFFF; --accent-grey: #F5F5F5; }
+        /* UI Elements stay Courier */
+        body, h1, #drop-zone, button, #terminal { font-family: 'Courier New', Courier, monospace; }
+        /* Feedback content uses Sans-Serif for readability */
+        .feedback-text { font-family: Arial, sans-serif; line-height: 1.6; color: #444; }
         
-        /* Drop Zone Styling */
-        #drop-zone {
-            border: 2px dashed var(--primary-red);
-            background: var(--accent-grey);
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-        }
+        body { background: var(--bg); margin: 0; padding: 10px; overflow-y: auto; }
+        .container { max-width: 100%; margin: 10px auto; border: 2px solid #eee; padding: 20px; border-radius: 4px; }
+        h1 { color: var(--primary-red); font-size: 1.2rem; margin-top: 0; }
+        
+        #drop-zone { border: 2px dashed var(--primary-red); background: var(--accent-grey); padding: 30px; text-align: center; cursor: pointer; margin-bottom: 15px; }
         #drop-zone.hover { background: #ffebee; border-style: solid; }
         
-        textarea { width: 100%; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; box-sizing: border-box; }
+        textarea { width: 100%; font-family: sans-serif; border: 1px solid #ccc; padding: 10px; margin-bottom: 15px; box-sizing: border-box; }
         
-        button { 
-            background: var(--primary-red); color: white; border: none; 
-            padding: 15px 30px; width: 100%; cursor: pointer; 
-            text-transform: uppercase; font-weight: bold;
-        }
-        button:hover { background: var(--deep-red); }
-
-        /* Terminal Result Styling */
-        #terminal {
-            background: #1a1a1a; color: #00ff00; padding: 15px;
-            border-radius: 4px; margin-top: 20px; display: none;
-            font-size: 0.9rem; line-height: 1.4;
-        }
-        .red-text { color: var(--primary-red); }
+        button { background: var(--primary-red); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; }
+        
+        #terminal { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 4px; margin-top: 15px; display: none; font-size: 0.85rem; }
+        .error-text { color: #ff3333; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>System // Resume_Analyzer_v1.0</h1>
-    <p>FEED THE MACHINE: INPUT DATA FOR ANALYSIS</p>
+    <h1>SYSTEM // RESUME_ANALYZER_v1.0</h1>
+    <textarea id="job_desc" rows="3" placeholder="PASTE JOB REQUIREMENTS HERE..."></textarea>
 
-    <form id="upload-form">
-        <label>TARGET JOB DESCRIPTION:</label>
-        <textarea id="job_desc" rows="4" placeholder="Paste requirements here..."></textarea>
+    <div id="drop-zone" id="dz">
+        FEED THE MACHINE: DROP PDF HERE
+        <input type="file" id="resume-file" hidden accept=".pdf">
+    </div>
 
-        <div id="drop-zone">
-            DRAG & DROP RESUME PDF HERE <br>
-            <span style="font-size: 0.8rem;">(OR CLICK TO SELECT)</span>
-            <input type="file" id="resume-file" hidden accept=".pdf">
-        </div>
-
-        <button type="button" onclick="runAnalysis()">Initialize Analysis</button>
-    </form>
-
+    <button type="button" onclick="runAnalysis()">INITIALIZE ANALYSIS</button>
     <div id="terminal"></div>
 </div>
 
 <script>
-    const dropZone = document.getElementById('drop-zone');
+    const dz = document.getElementById('drop-zone');
     const fileInput = document.getElementById('resume-file');
 
-    dropZone.onclick = () => fileInput.click();
-    
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('hover'); };
-    dropZone.ondragleave = () => dropZone.classList.remove('hover');
-    dropZone.ondrop = (e) => {
+    dz.onclick = () => fileInput.click();
+    dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('hover'); };
+    dz.ondragleave = () => dz.classList.remove('hover');
+    dz.ondrop = (e) => {
         e.preventDefault();
-        dropZone.classList.remove('hover');
+        dz.classList.remove('hover');
         fileInput.files = e.dataTransfer.files;
-        dropZone.innerHTML = `FILE LOADED: ${e.dataTransfer.files[0].name}`;
+        dz.innerHTML = `FILE_LOADED: ${e.dataTransfer.files[0].name}`;
     };
 
     async function runAnalysis() {
         const term = document.getElementById('terminal');
         term.style.display = 'block';
-        term.innerHTML = "> Initializing CoffeeUnderflow AI...<br>> Parsing PDF Structure...<br>> Analyzing keyword density...";
+        term.innerHTML = "> ACCESSING CORE...<br>> PARSING PDF...<br>> CALCULATING VECTOR DISTANCE...";
 
         const formData = new FormData();
         formData.append('job_description', document.getElementById('job_desc').value);
         formData.append('resume', fileInput.files[0]);
 
-        const response = await fetch('/analyze', { method: 'POST', body: formData });
-        const data = await response.json();
-
-        setTimeout(() => {
-            term.innerHTML += `<br>> Analysis Complete.<br><br><span class="red-text">[MATCH_SCORE]: ${data.match_score}</span>`;
-        }, 1000);
+        try {
+            const response = await fetch('/analyze', { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Network snag');
+            const data = await response.json();
+            
+            term.innerHTML += `<br>> ANALYSIS COMPLETE.<br><br><span style="color:white">MATCH_SCORE:</span> <span style="color:var(--primary-red)">${data.match_score}</span>`;
+        } catch (err) {
+            term.innerHTML += `<br><br><span class="error-text">[ERROR]: SYSTEM OVERHEAT. THE MACHINE IS TAKING A COFFEE BREAK. PLEASE TRY AGAIN IN 30 SECONDS.</span>`;
+        }
     }
 </script>
-
 </body>
 </html>
