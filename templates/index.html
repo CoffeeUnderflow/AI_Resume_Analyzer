@@ -3,114 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoffeeUnderflow | AI Machine</title>
+    <title>CoffeeUnderflow | Analyzer v1.2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --primary-red: #D32F2F; --bg: #FFFFFF; --accent-grey: #F5F5F5; }
-        /* UI Elements stay Courier */
-        body, h1, #drop-zone, button, #terminal { font-family: 'Courier New', Courier, monospace; }
-        /* Feedback content uses Sans-Serif for readability */
-        .feedback-text { font-family: Arial, sans-serif; line-height: 1.6; color: #444; }
+        :root {
+            --pure-white: #FFFFFF;
+            --black: #000000;
+            --dark-grey: #555555;
+            --light-grey: #CCCCCC;
+            --primary-red: #D32F2F;
+        }
+
+        body {
+            background: var(--pure-white);
+            font-family: 'Oswald', sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        /* Top Box: File Upload Blueprint */
+        #drop-zone {
+            background: var(--pure-white);
+            border: 1px solid var(--black);
+            color: var(--black);
+            font-size: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        #drop-zone.hover {
+            background: #fafafa;
+            border-width: 2px;
+        }
+
+        /* Middle Box: Job Requirements Blueprint */
+        textarea {
+            width: 100%;
+            background: var(--pure-white);
+            border: 1px solid var(--dark-grey);
+            color: var(--black);
+            font-family: 'Oswald', sans-serif;
+            font-size: 24px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        /* Bottom Element: Action Button Blueprint */
+        button {
+            background: var(--primary-red);
+            color: var(--pure-white);
+            border: none;
+            font-family: 'Oswald', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 15px;
+            width: 100%;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s ease;
+        }
+        button:hover {
+            background: #B71C1C;
+        }
+
+        /* Output Box Blueprint (Hidden initially) */
+        #output-box {
+            display: none;
+            background: var(--pure-white);
+            border: 1px solid var(--primary-red);
+            padding: 25px;
+            margin-top: 25px;
+            box-sizing: border-box;
+        }
+
+        .output-header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 15px;
+        }
+
+        .divider {
+            border: 0;
+            height: 1px;
+            background: var(--light-grey);
+            margin: 20px 0;
+        }
+
+        .suggestions-section {
+            text-align: left;
+            font-size: 24px;
+            color: var(--black);
+        }
+
+        .suggestions-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .suggestions-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .suggestions-list li {
+            padding: 5px 0;
+        }
         
-        body { background: var(--bg); margin: 0; padding: 10px; overflow-y: auto; }
-        .container { max-width: 100%; margin: 10px auto; border: 2px solid #eee; padding: 20px; border-radius: 4px; }
-        h1 { color: var(--primary-red); font-size: 1.2rem; margin-top: 0; }
-        
-        #drop-zone { border: 2px dashed var(--primary-red); background: var(--accent-grey); padding: 30px; text-align: center; cursor: pointer; margin-bottom: 15px; }
-        #drop-zone.hover { background: #ffebee; border-style: solid; }
-        
-        textarea { width: 100%; font-family: sans-serif; border: 1px solid #ccc; padding: 10px; margin-bottom: 15px; box-sizing: border-box; }
-        
-        button { background: var(--primary-red); color: white; border: none; padding: 12px; width: 100%; cursor: pointer; font-weight: bold; }
-        
-        #terminal { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 4px; margin-top: 15px; display: none; font-size: 0.85rem; }
-        .error-text { color: #ff3333; font-weight: bold; }
+        .error-text {
+            color: var(--primary-red);
+            font-weight: 700;
+            text-align: center;
+            font-size: 24px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>SYSTEM // RESUME_ANALYZER_v1.0</h1>
-    <textarea id="job_desc" rows="3" placeholder="PASTE JOB REQUIREMENTS HERE..."></textarea>
-
-   <div id="drop-zone">
-        FEED THE MACHINE: DROP PDF HERE
+    <div id="drop-zone">
+        Upload your PDF file
         <input type="file" id="resume-file" hidden accept=".pdf">
     </div>
 
-    <button type="button" onclick="runAnalysis()">INITIALIZE ANALYSIS</button>
-    <div id="terminal"></div>
+    <textarea id="job_desc" rows="4" placeholder="PASTE JOB REQUIREMENTS HERE..."></textarea>
+
+    <button type="button" onclick="runAnalysis()">GO</button>
+
+    <div id="output-box">
+        <div class="output-header" id="output-header-text"></div>
+        <hr class="divider" id="output-divider">
+        <div class="suggestions-section" id="output-suggestions">
+            <div class="suggestions-title">Missing Terms to Integrate:</div>
+            <ul class="suggestions-list">
+                <li>Spring Boot</li>
+                <li>SQL</li>
+                <li>REST APIs</li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <script>
     const dz = document.getElementById('drop-zone');
     const fileInput = document.getElementById('resume-file');
+    const outputBox = document.getElementById('output-box');
+    const headerText = document.getElementById('output-header-text');
+    const divider = document.getElementById('output-divider');
+    const suggestions = document.getElementById('output-suggestions');
 
-    dz.onclick = () => fileInput.click();
-    dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('hover'); };
-    dz.ondragleave = () => dz.classList.remove('hover');
-    dz.ondrop = (e) => {
-        e.preventDefault();
-        dz.classList.remove('hover');
-        fileInput.files = e.dataTransfer.files;
-        dz.innerHTML = `FILE_LOADED: ${e.dataTransfer.files[0].name}`;
-    };
-
-    async function runAnalysis() {
-        const term = document.getElementById('terminal');
-        term.style.display = 'block';
-        term.innerHTML = "> ACCESSING CORE...<br>> PARSING PDF...<br>> CALCULATING VECTOR DISTANCE...";
-
-        const formData = new FormData();
-        formData.append('job_description', document.getElementById('job_desc').value);
-        formData.append('resume', fileInput.files[0]);
-
-        try {
-            const response = await fetch('/analyze', { method: 'POST', body: formData });
-            if (!response.ok) throw new Error('Network snag');
-            const data = await response.json();
-            
-            term.innerHTML += `<br>> ANALYSIS COMPLETE.<br><br><span style="color:white">MATCH_SCORE:</span> <span style="color:var(--primary-red)">${data.match_score}</span>`;
-        } catch (err) {
-            term.innerHTML += `<br><br><span class="error-text">[ERROR]: SYSTEM OVERHEAT. THE MACHINE IS TAKING A COFFEE BREAK. PLEASE TRY AGAIN IN 30 SECONDS.</span>`;
-        }
-    }
-
-    const dz = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('resume-file');
-
-    // Clicking the box triggers the file input
     dz.onclick = () => fileInput.click();
     
-    // 1. FIX: Update text when a user selects a file via the file browser dialog
     fileInput.onchange = () => {
         if (fileInput.files.length > 0) {
-            dz.innerHTML = `FILE_LOADED: <span style="color: var(--primary-red); font-weight: bold;">${fileInput.files[0].name}</span>`;
+            dz.innerHTML = `FILE LOADED: ${fileInput.files[0].name}`;
         }
     };
     
-    // Handle drag and drop states
     dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('hover'); };
     dz.ondragleave = () => dz.classList.remove('hover');
     dz.ondrop = (e) => {
         e.preventDefault();
         dz.classList.remove('hover');
         fileInput.files = e.dataTransfer.files;
-        // Update text when file is dropped
-        dz.innerHTML = `FILE_LOADED: <span style="color: var(--primary-red); font-weight: bold;">${e.dataTransfer.files[0].name}</span>`;
+        dz.innerHTML = `FILE LOADED: ${e.dataTransfer.files[0].name}`;
     };
 
     async function runAnalysis() {
-        const term = document.getElementById('terminal');
-        
-        // 2. FIX: Add a safeguard in case they hit the button without a file loaded
+        // Safeguard for empty inputs
         if (fileInput.files.length === 0) {
-            term.style.display = 'block';
-            term.innerHTML = `<span class="error-text">[ERROR]: NO DATA INPUT DETECTED. PLEASE LOAD A RESUME PDF.</span>`;
+            outputBox.style.display = 'block';
+            divider.style.display = 'none';
+            suggestions.style.display = 'none';
+            headerText.innerHTML = `<span class="error-text">[ERROR]: NO PDF FILE DETECTED.</span>`;
             return;
         }
 
-        term.style.display = 'block';
-        term.innerHTML = "> ACCESSING CORE...<br>> PARSING PDF...<br>> CALCULATING VECTOR DISTANCE...";
+        // Setup loading layout state
+        outputBox.style.display = 'block';
+        divider.style.display = 'none';
+        suggestions.style.display = 'none';
+        headerText.innerHTML = "PROCESSING LOGIC CODES...";
 
         const formData = new FormData();
         formData.append('job_description', document.getElementById('job_desc').value);
@@ -118,14 +208,20 @@
 
         try {
             const response = await fetch('/analyze', { method: 'POST', body: formData });
-            if (!response.ok) throw new Error('Network snag');
+            if (!response.ok) throw new Error('Network issue');
             const data = await response.json();
             
-            term.innerHTML += `<br>> ANALYSIS COMPLETE.<br><br><span style="color:white">MATCH_SCORE:</span> <span style="color:var(--primary-red)">${data.match_score}</span>`;
+            // Render the final blueprint layout accurately
+            divider.style.display = 'block';
+            suggestions.style.display = 'block';
+            headerText.innerHTML = `> Match Score: ${data.match_score} — [STATUS: MISALIGNED]`;
+            
         } catch (err) {
-            term.innerHTML += `<br><br><span class="error-text">[ERROR]: SYSTEM OVERHEAT. THE MACHINE IS TAKING A COFFEE BREAK. PLEASE TRY AGAIN IN 30 SECONDS.</span>`;
+            divider.style.display = 'none';
+            suggestions.style.display = 'none';
+            headerText.innerHTML = `<span class="error-text">[ERROR]: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
         }
     }
 </script>
-    </body>
+</body>
 </html>
