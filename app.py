@@ -33,13 +33,46 @@ def analyze():
         tfidf_matrix = vectorizer.fit_transform(documents)
         score = cosine_similarity(tfidf_matrix)[0][1] * 100
 
-        # 2. Extract Missing Keywords Logic with a Custom Tech Filter
+        # 2. Extract Missing Keywords Logic with a Master Tech Filter (>100 words)
         base_stop_words = text.ENGLISH_STOP_WORDS
         custom_fillers = {
+            # Core Conversational & Verbs
             'looking', 'understands', 'conventions', 'huge', 'like', 'plus',
             'follows', 'experience', 'standard', 'design', 'oriented', 'object',
             'developer', 'seeking', 'requirements', 'aligned', 'stack', 'better',
-            'insights', 'detail', 'highly', 'major', 'missing', 'technical'
+            'insights', 'detail', 'highly', 'major', 'missing', 'technical',
+            'knows', 'need', 'needs', 'want', 'wants', 'working', 'work', 'team',
+            'skills', 'ability', 'knowledge', 'understanding', 'required', 'preferred',
+            'role', 'position', 'responsibilities', 'duties', 'successful', 'candidate',
+            'strong', 'excellent', 'good', 'years', 'environment', 'using', 'tools',
+            
+            # Action Verbs & Job Description Fluff
+            'joining', 'hiring', 'build', 'maintain', 'develop', 'create', 'write',
+            'implement', 'collaborate', 'support', 'manage', 'lead', 'drive', 'deliver',
+            'ensure', 'improve', 'optimize', 'solve', 'help', 'assist', 'execute',
+            'participate', 'contribute', 'analyze', 'evaluate', 'identify', 'review',
+            'provide', 'possess', 'demonstrate', 'understand', 'perform', 'responsible',
+            
+            # Corporate Buzzwords & Adjectives
+            'passionate', 'dynamic', 'innovative', 'motivated', 'talented', 'creative',
+            'proven', 'track', 'record', 'results', 'detail', 'oriented', 'driven',
+            'fast', 'paced', 'high', 'quality', 'effective', 'efficient', 'proactive',
+            'exceptional', 'advanced', 'proficient', 'expert', 'professional', 'hands',
+            'solid', 'deep', 'broad', 'excellent', 'outstanding', 'critical', 'analytical',
+            
+            # Workplace & Process Structural Terms
+            'company', 'business', 'organization', 'culture', 'values', 'mission',
+            'growth', 'opportunity', 'career', 'people', 'users', 'customers', 'clients',
+            'projects', 'products', 'services', 'systems', 'solutions', 'applications',
+            'platforms', 'processes', 'methodologies', 'practices', 'standards',
+            'architecture', 'infrastructure', 'lifecycle', 'development', 'production',
+            'frameworks', 'technologies', 'languages', 'tools', 'utilities',
+            
+            # Common Descriptive Connectors
+            'day', 'today', 'daily', 'weekly', 'closely', 'cross', 'functional',
+            'remote', 'hybrid', 'office', 'full', 'time', 'part', 'contract',
+            'degree', 'computer', 'science', 'engineering', 'field', 'related',
+            'equivalent', 'minimum', 'plus', 'preferred', 'bonus', 'desirable'
         }
         all_stop_words = base_stop_words.union(custom_fillers)
 
