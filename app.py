@@ -28,12 +28,15 @@ def analyze():
 
         # 1. Calculate TF-IDF Cosine Similarity Score
         documents = [resume_text, job_description]
-        vectorizer = TfidfVectorizer()
+       vectorizer = TfidfVectorizer(stop_words='english')
         tfidf_matrix = vectorizer.fit_transform(documents)
         score = cosine_similarity(tfidf_matrix)[0][1] * 100
 
-        # 2. Extract Missing Keywords Logic
-        analyze_text = vectorizer.build_analyzer()
+     # 2. Extract Missing Keywords Logic
+        keyword_vectorizer = TfidfVectorizer(stop_words='english')
+        keyword_vectorizer.fit([resume_text, job_description])
+        analyze_text = keyword_vectorizer.build_analyzer()
+        
         job_words = set(analyze_text(job_description))
         resume_words = set(analyze_text(resume_text))
 
