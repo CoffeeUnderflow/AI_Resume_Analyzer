@@ -76,8 +76,12 @@ def analyze():
         }
         all_stop_words = base_stop_words.union(custom_fillers)
 
-        # Added ngram_range=(1, 2) to catch paired phrases like "cloud deployment" together
-        keyword_vectorizer = TfidfVectorizer(stop_words=list(all_stop_words), ngram_range=(1, 2))
+        # Configured token_pattern to respect punctuation boundaries
+        keyword_vectorizer = TfidfVectorizer(
+            stop_words=list(all_stop_words), 
+            ngram_range=(1, 2),
+            token_pattern=r'\b[a-zA-Z0-9_-]+\b'
+        )
         keyword_vectorizer.fit([resume_text, job_description])
         analyze_text = keyword_vectorizer.build_analyzer()
         
@@ -87,7 +91,10 @@ def analyze():
         # Find terms that exist in the job description but NOT in the resume
         missing = [word for word in job_words if word not in resume_words and len(word) > 2]
 
-        # Format words to look clean on the frontend layout (e.g., "sql", "java")
+        # Prioritize keyphrases over split single words
+        missing.sort(key=lambda x: len(x.split()), reverse=True)
+
+        # Format words to look clean on the frontend layout
         missing_skills = [word.upper() for word in missing[:6]]
 
         # 3. Return keys to the frontend UI pipeline
