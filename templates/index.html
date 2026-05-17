@@ -164,6 +164,15 @@
     const headerText = document.getElementById('output-header-text');
     const divider = document.getElementById('output-divider');
     const suggestions = document.getElementById('output-suggestions');
+    const jobDesc = document.getElementById('job_desc');
+
+    // Intercept keyboard Enter key to run analysis smoothly
+    jobDesc.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // Stop a fresh empty line from breaking the textarea formatting
+            runAnalysis();      // Execute the matching logic
+        }
+    });
 
     // Securely routes the click event from box to the hidden input target
     dz.onclick = () => fileInput.click();
@@ -200,10 +209,10 @@
         headerText.innerHTML = "PROCESSING LOGIC CODES...";
 
         const formData = new FormData();
-        formData.append('job_description', document.getElementById('job_desc').value);
+        formData.append('job_description', jobDesc.value);
         formData.append('resume', fileInput.files[0]);
 
-try {
+        try {
             const response = await fetch('/analyze', { method: 'POST', body: formData });
             if (!response.ok) throw new Error('Network issue');
             const data = await response.json();
@@ -226,7 +235,7 @@ try {
             const listContainer = document.getElementById('skills-list');
             listContainer.innerHTML = ""; 
     
-    if (data.missing_skills && data.missing_skills.length > 0) {
+            if (data.missing_skills && data.missing_skills.length > 0) {
                 data.missing_skills.forEach(skill => {
                     const li = document.createElement('li');
                     li.textContent = skill;
@@ -244,8 +253,6 @@ try {
             headerText.innerHTML = `<span class="error-text">ERROR: SYSTEM OVERHEAT. SERVER BREAKING.</span>`;
         }
     }
-            
-          
 </script>
 </body>
 </html>
