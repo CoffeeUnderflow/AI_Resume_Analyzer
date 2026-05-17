@@ -33,7 +33,7 @@ def analyze():
         tfidf_matrix = vectorizer.fit_transform(documents)
         score = cosine_similarity(tfidf_matrix)[0][1] * 100
 
-        # 2. Extract Missing Keywords Logic with a Master Tech Filter (>100 words)
+        # 2. Extract Missing Keywords Logic with Master Tech & Phrase Filter
         base_stop_words = text.ENGLISH_STOP_WORDS
         custom_fillers = {
             # Core Conversational & Verbs
@@ -76,7 +76,8 @@ def analyze():
         }
         all_stop_words = base_stop_words.union(custom_fillers)
 
-        keyword_vectorizer = TfidfVectorizer(stop_words=list(all_stop_words))
+        # Added ngram_range=(1, 2) to catch paired phrases like "cloud deployment" together
+        keyword_vectorizer = TfidfVectorizer(stop_words=list(all_stop_words), ngram_range=(1, 2))
         keyword_vectorizer.fit([resume_text, job_description])
         analyze_text = keyword_vectorizer.build_analyzer()
         
