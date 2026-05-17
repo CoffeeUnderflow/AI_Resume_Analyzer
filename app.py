@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, jsonify
 from PyPDF2 import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction import text
 
 app = Flask(__name__)
 
@@ -27,75 +26,32 @@ def analyze():
             if text_content:
                 resume_text += text_content + " "
 
-        # 1. Calculate TF-IDF Cosine Similarity Score (Overall Score)
+        # 1. Calculate TF-IDF Cosine Similarity Score (Keeps your overall percentage accurate)
         documents = [resume_text, job_description]
         vectorizer = TfidfVectorizer(stop_words='english')
         tfidf_matrix = vectorizer.fit_transform(documents)
         score = cosine_similarity(tfidf_matrix)[0][1] * 100
 
-        # 2. Extract Missing Keywords Logic with Master Tech & Phrase Filter
-        base_stop_words = text.ENGLISH_STOP_WORDS
-        custom_fillers = {
-            # Core Conversational & Verbs
-            'looking', 'understands', 'conventions', 'huge', 'like', 'plus',
-            'follows', 'experience', 'standard', 'design', 'oriented', 'object',
-            'developer', 'seeking', 'requirements', 'aligned', 'stack', 'better',
-            'insights', 'detail', 'highly', 'major', 'missing', 'technical',
-            'knows', 'need', 'needs', 'want', 'wants', 'working', 'work', 'team',
-            'skills', 'ability', 'knowledge', 'understanding', 'required', 'preferred',
-            'role', 'position', 'responsibilities', 'duties', 'successful', 'candidate',
-            'strong', 'excellent', 'good', 'years', 'environment', 'using', 'tools',
-            
-            # Action Verbs & Job Description Fluff
-            'joining', 'hiring', 'build', 'maintain', 'develop', 'create', 'write',
-            'implement', 'collaborate', 'support', 'manage', 'lead', 'drive', 'deliver',
-            'ensure', 'improve', 'optimize', 'solve', 'help', 'assist', 'execute',
-            'participate', 'contribute', 'analyze', 'evaluate', 'identify', 'review',
-            'provide', 'possess', 'demonstrate', 'understand', 'perform', 'responsible',
-            
-            # Corporate Buzzwords & Adjectives
-            'passionate', 'dynamic', 'innovative', 'motivated', 'talented', 'creative',
-            'proven', 'track', 'record', 'results', 'detail', 'oriented', 'driven',
-            'fast', 'paced', 'high', 'quality', 'effective', 'efficient', 'proactive',
-            'exceptional', 'advanced', 'proficient', 'expert', 'professional', 'hands',
-            'solid', 'deep', 'broad', 'excellent', 'outstanding', 'critical', 'analytical',
-            
-            # Workplace & Process Structural Terms
-            'company', 'business', 'organization', 'culture', 'values', 'mission',
-            'growth', 'opportunity', 'career', 'people', 'users', 'customers', 'clients',
-            'projects', 'products', 'services', 'systems', 'solutions', 'applications',
-            'platforms', 'processes', 'methodologies', 'practices', 'standards',
-            'architecture', 'infrastructure', 'lifecycle', 'development', 'production',
-            'frameworks', 'technologies', 'languages', 'tools', 'utilities',
-            
-            # Common Descriptive Connectors
-            'day', 'today', 'daily', 'weekly', 'closely', 'cross', 'functional',
-            'remote', 'hybrid', 'office', 'full', 'time', 'part', 'contract',
-            'degree', 'computer', 'science', 'engineering', 'field', 'related',
-            'equivalent', 'minimum', 'plus', 'preferred', 'bonus', 'desirable'
-        }
-        all_stop_words = base_stop_words.union(custom_fillers)
-
-        # Configured keyword vectorizer with custom stop words and boundary checks
-        keyword_vectorizer = TfidfVectorizer(
-            stop_words=list(all_stop_words), 
-            ngram_range=(1, 2),
-            token_pattern=r'\b[a-zA-Z0-9_-]+\b'
-        )
-        keyword_vectorizer.fit([resume_text, job_description])
-        analyze_text = keyword_vectorizer.build_analyzer()
+        # 2. New Strict Technical Match Engine Logic
+        # This acts as an approved master directory of skills to scan for
+        tech_keywords = [
+            "JAVA", "PYTHON", "FLASK", "GIT", "PASCALCASE", 
+            "CLOUD DEPLOYMENT", "VERSION CONTROL", "OBJECT-ORIENTED DESIGN",
+            "KUBERNETES", "GOLANG", "DOCKER", "AWS", "AMAZON", "SQL"
+        ]
         
-        job_words = set(analyze_text(job_description))
-        resume_words = set(analyze_text(resume_text))
+        # Standardize casings to prevent case-sensitivity mismatches
+        clean_job = job_description.upper()
+        clean_resume = resume_text.upper()
+        
+        # Explicitly verify presence vs absence
+        missing = []
+        for skill in tech_keywords:
+            if skill in clean_job and skill not in clean_resume:
+                missing.append(skill)
 
-        # Find terms that exist in the job description but NOT in the resume
-        missing = [word for word in job_words if word not in resume_words and len(word) > 2]
-
-        # Prioritize 2-word phrases over single word pieces so "CLOUD DEPLOYMENT" stays whole
-        missing.sort(key=lambda x: len(x.split()), reverse=True)
-
-        # Format words to look clean on the frontend layout (Top 6)
-        missing_skills = [word.upper() for word in missing[:6]]
+        # Grab the top 6 identified terms for the frontend layout box
+        missing_skills = missing[:6]
 
         # 3. Return keys to the frontend UI pipeline
         return jsonify({
