@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 from PyPDF2 import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction import text
 
 app = Flask(__name__)
 
@@ -22,9 +23,9 @@ def analyze():
         reader = PdfReader(file)
         resume_text = ""
         for page in reader.pages:
-            text = page.extract_text()
-            if text:
-                resume_text += text + " "
+            text_content = page.extract_text()
+            if text_content:
+                resume_text += text_content + " "
 
         # 1. Calculate TF-IDF Cosine Similarity Score
         documents = [resume_text, job_description]
@@ -32,8 +33,17 @@ def analyze():
         tfidf_matrix = vectorizer.fit_transform(documents)
         score = cosine_similarity(tfidf_matrix)[0][1] * 100
 
-        # 2. Extract Missing Keywords Logic
-        keyword_vectorizer = TfidfVectorizer(stop_words='english')
+        # 2. Extract Missing Keywords Logic with a Custom Tech Filter
+        base_stop_words = text.ENGLISH_STOP_WORDS
+        custom_fillers = {
+            'looking', 'understands', 'conventions', 'huge', 'like', 'plus',
+            'follows', 'experience', 'standard', 'design', 'oriented', 'object',
+            'developer', 'seeking', 'requirements', 'aligned', 'stack', 'better',
+            'insights', 'detail', 'highly', 'major', 'missing', 'technical'
+        }
+        all_stop_words = base_stop_words.union(custom_fillers)
+
+        keyword_vectorizer = TfidfVectorizer(stop_words=list(all_stop_words))
         keyword_vectorizer.fit([resume_text, job_description])
         analyze_text = keyword_vectorizer.build_analyzer()
         
