@@ -27,7 +27,7 @@ def analyze():
             if text_content:
                 resume_text += text_content + " "
 
-        # 1. Calculate TF-IDF Cosine Similarity Score
+        # 1. Calculate TF-IDF Cosine Similarity Score (Overall Score)
         documents = [resume_text, job_description]
         vectorizer = TfidfVectorizer(stop_words='english')
         tfidf_matrix = vectorizer.fit_transform(documents)
@@ -76,7 +76,7 @@ def analyze():
         }
         all_stop_words = base_stop_words.union(custom_fillers)
 
-        # Configured token_pattern to respect punctuation boundaries
+        # Configured keyword vectorizer with custom stop words and boundary checks
         keyword_vectorizer = TfidfVectorizer(
             stop_words=list(all_stop_words), 
             ngram_range=(1, 2),
@@ -91,10 +91,10 @@ def analyze():
         # Find terms that exist in the job description but NOT in the resume
         missing = [word for word in job_words if word not in resume_words and len(word) > 2]
 
-        # Prioritize keyphrases over split single words
+        # Prioritize 2-word phrases over single word pieces so "CLOUD DEPLOYMENT" stays whole
         missing.sort(key=lambda x: len(x.split()), reverse=True)
 
-        # Format words to look clean on the frontend layout
+        # Format words to look clean on the frontend layout (Top 6)
         missing_skills = [word.upper() for word in missing[:6]]
 
         # 3. Return keys to the frontend UI pipeline
